@@ -13,9 +13,7 @@ ap.add_argument("-v", "--video", required=True, help="Path to the video")
 args = vars(ap.parse_args())
 
 # Open video file
-# cap = cv2.VideoCapture(args["video"], cv2.CAP_FFMPEG)
 cap = cv2.VideoCapture(args["video"])
-# cap = cv2.VideoCapture(0)
 
 # Check if camera opened successfully
 if (cap.isOpened() == False):
@@ -51,6 +49,7 @@ while(cap.isOpened()):
 
   if ret == True:
     if i%3==0:
+      # Find the best Harris features.
       p0 = cv2.goodFeaturesToTrack(old_gray, mask=None, **feature_params)
       print('i = ', i)
       i = 0
@@ -67,11 +66,11 @@ while(cap.isOpened()):
     good_old = p0[st==1]
 
     # Draw the tracks
+    mask = np.zeros_like(old_frame)
     for i, (new, old) in enumerate(zip(good_new, good_old)):
       a, b = new.ravel()
       c, d = old.ravel()
       print(np.sqrt((a-c) * (a-c) + (b-d) * (b-d)))
-      mask = np.zeros_like(old_frame)
       mask = cv2.line(mask, (a, b), (c, d), color[i].tolist(), 2)
       frame = cv2.circle(frame, (a, b), 5, color[i].tolist(), -1)
       tmp_frame = frame.copy()
@@ -85,8 +84,6 @@ while(cap.isOpened()):
     # hsv[...,0] = ang * 180 / np.pi / 2
     # hsv[...,2] = cv2.normalize(mag, None, 0, 255, cv2.NORM_MINMAX)
     # bgr = cv2.cvtColor(hsv,cv2.COLOR_HSV2BGR)
-    #
-    # cv2.imshow('frame2', bgr)
 
     i=i+1
     prev_frame = frame
