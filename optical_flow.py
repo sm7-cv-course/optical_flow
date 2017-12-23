@@ -1,39 +1,55 @@
 import cv2
 import numpy as np
-import matplotlib as plt
+import matplotlib.pyplot as plt
 import argparse
 import time
+from pyramid_image import *
 
 # Create some random colors
 color = np.random.randint(0, 255, (100, 3))
 
+def build_ovrs(img, n_ovrs, scale):
+    cur_img = img
+    cur_scale = 1
+    layers_dict = {}
+    for k in range(n_ovrs):
+        cur_scale = cur_scale * scale
+        img_dwnsmpl = cv2.resize(cur_img, None, fx=scale, fy=scale, interpolation=cv2.INTER_NEAREST)
+        layers_dict[cur_scale] = img_dwnsmpl
+        cur_img = img_dwnsmpl
+    return layers_dict
+
 # Construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
-ap.add_argument("-v", "--video", required=True, help="Path to the video")
+ap.add_argument("-v", "--video", required=True, help="Path to the video.")
+ap.add_argument("-t", "--target", required=True, help="Path to target image.")
 ap.add_argument("-c", "--split", required=False, help="Save each frame.")
 args = vars(ap.parse_args())
 
 # Open video file.
 cap = cv2.VideoCapture(args["video"])
+# Open target image.
+target_img = cv2.imread(args["target"])
+
+# Create vector of pyramids
+# pyr_iamge = PyramidImage(target_img)
+# pyr_iamge.build_ovr(4, 0.5)
+layers_dict = build_ovrs(target_img, n_ovrs=4, scale=0.5)
 
 # Check if camera opened successfully.
 if (cap.isOpened() == False):
   print("Error opening video stream or file")
 
-# OPtical flow parameters
-# Params for ShiTomasi corner detection
+# OPtical flow parameters.
+# Params for ShiTomasi corner detection.
 feature_params = dict(maxCorners=100, qualityLevel=0.3, minDistance=7, blockSize=7)
-# Parameters for Lucas Kanade optical flow
+# Parameters for Lucas Kanade optical flow.
 lk_params = dict(winSize=(15, 15), maxLevel=2, criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
 
-# Take first frame and find corners in it
+# Take the first frame and find corners in it.
 ret, old_frame = cap.read()
 old_gray = cv2.cvtColor(old_frame, cv2.COLOR_BGR2GRAY)
 p0 = cv2.goodFeaturesToTrack(old_gray, mask=None, **feature_params)
-
-#
-hsv = np.zeros_like(old_frame)
-hsv[..., 1] = 255
 
 # Create a mask image for drawing purposes
 mask = np.zeros_like(old_frame)
@@ -45,7 +61,7 @@ while(cap.isOpened() and ret is True):
   ret, frame = cap.read()
   frame_gray = cv2.cvtColor(frame, cv2.COLOR_RGBA2GRAY)
 
-  # The first frame
+  # The first frame.
   if i == 0:
     prev_frame = frame
 
@@ -54,15 +70,11 @@ while(cap.isOpened() and ret is True):
       # Find the best Harris features.
       p0 = cv2.goodFeaturesToTrack(old_gray, mask=None, **feature_params)
       i = 0
-
-      # Calculate optical flow
-      cv2.imshow('Flow', old_gray - frame_gray)
-      # flow = cv2.optflow.calcOpticalFlowSF(prev_frame, frame, 1, 3, 1)
       # Lukas-Kanade method
       p1, st, err = cv2.calcOpticalFlowPyrLK(old_gray, frame_gray, p0, None, **lk_params)
       # cv2.imshow('Flow', flow)
 
-      # Select good points
+      # Select good points.
       good_new = p1[st==1]
       good_old = p0[st==1]
 
@@ -79,27 +91,20 @@ while(cap.isOpened() and ret is True):
 
       cv2.imshow('frame', img)
 
-    # Farneback's Optical Flow
-    # flow = cv2.calcOpticalFlowFarneback(old_gray, frame_gray, None, 0.5, 3, 15, 3, 5, 1.2, 0)
-    # mag, ang = cv2.cartToPolar(flow[...,0], flow[...,1])
-    # hsv[...,0] = ang * 180 / np.pi / 2
-    # hsv[...,2] = cv2.normalize(mag, None, 0, 255, cv2.NORM_MINMAX)
-    # bgr = cv2.cvtColor(hsv,cv2.COLOR_HSV2BGR)
-
     i = i + 1
     prev_frame = frame
     old_gray = frame_gray
 
-    # Press Q on keyboard to exit
+    # Press Q on keyboard to exit.
     if cv2.waitKey(25) & 0xFF == ord('q') or ret is False:
       break
 
-  # Break the loop
+  # Break the loop.
   else:
     break
 
-# When everything done, release the video capture object
+# When everything done, release the video capture object.
 cap.release()
 
-# Closes all the frames
+# Closes all the frames.
 cv2.destroyAllWindows()
