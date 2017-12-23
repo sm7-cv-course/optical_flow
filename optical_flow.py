@@ -5,17 +5,18 @@ import argparse
 import time
 
 # Create some random colors
-color = np.random.randint(0,255,(100,3))
+color = np.random.randint(0, 255, (100, 3))
 
 # Construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
 ap.add_argument("-v", "--video", required=True, help="Path to the video")
+ap.add_argument("-c", "--split", required=False, help="Save each frame.")
 args = vars(ap.parse_args())
 
-# Open video file
+# Open video file.
 cap = cv2.VideoCapture(args["video"])
 
-# Check if camera opened successfully
+# Check if camera opened successfully.
 if (cap.isOpened() == False):
   print("Error opening video stream or file")
 
@@ -38,7 +39,8 @@ hsv[..., 1] = 255
 mask = np.zeros_like(old_frame)
 
 i = 0
-while(cap.isOpened()):
+ret = True
+while(cap.isOpened() and ret is True):
   # Capture frame-by-frame
   ret, frame = cap.read()
   frame_gray = cv2.cvtColor(frame, cv2.COLOR_RGBA2GRAY)
@@ -48,35 +50,34 @@ while(cap.isOpened()):
     prev_frame = frame
 
   if ret == True:
-    if i%3==0:
+    if i % 3 == 0:
       # Find the best Harris features.
       p0 = cv2.goodFeaturesToTrack(old_gray, mask=None, **feature_params)
-      print('i = ', i)
       i = 0
 
-    # Calculate optical flow
-    # cv2.imshow('Flow', prev_frame - frame)
-    # flow = cv2.optflow.calcOpticalFlowSF(prev_frame, frame, 1, 3, 1)
-    # Lukas-Kanade method
-    p1, st, err = cv2.calcOpticalFlowPyrLK(old_gray, frame_gray, p0, None, **lk_params)
-    # cv2.imshow('Flow', flow)
+      # Calculate optical flow
+      cv2.imshow('Flow', old_gray - frame_gray)
+      # flow = cv2.optflow.calcOpticalFlowSF(prev_frame, frame, 1, 3, 1)
+      # Lukas-Kanade method
+      p1, st, err = cv2.calcOpticalFlowPyrLK(old_gray, frame_gray, p0, None, **lk_params)
+      # cv2.imshow('Flow', flow)
 
-    # Select good points
-    good_new = p1[st==1]
-    good_old = p0[st==1]
+      # Select good points
+      good_new = p1[st==1]
+      good_old = p0[st==1]
 
-    # Draw the tracks
-    mask = np.zeros_like(old_frame)
-    for i, (new, old) in enumerate(zip(good_new, good_old)):
-      a, b = new.ravel()
-      c, d = old.ravel()
-      print(np.sqrt((a-c) * (a-c) + (b-d) * (b-d)))
-      mask = cv2.line(mask, (a, b), (c, d), color[i].tolist(), 2)
-      frame = cv2.circle(frame, (a, b), 5, color[i].tolist(), -1)
-      tmp_frame = frame.copy()
-    img = cv2.add(tmp_frame, mask)
+      # Draw the tracks
+      mask = np.zeros_like(old_frame)
+      for i, (new, old) in enumerate(zip(good_new, good_old)):
+        a, b = new.ravel()
+        c, d = old.ravel()
+        print(np.sqrt((a-c) * (a-c) + (b-d) * (b-d)))
+        mask = cv2.line(mask, (a, b), (c, d), color[i].tolist(), 2)
+        frame = cv2.circle(frame, (a, b), 5, color[i].tolist(), -1)
+        tmp_frame = frame.copy()
+        img = cv2.add(tmp_frame, mask)
 
-    cv2.imshow('frame', img)
+      cv2.imshow('frame', img)
 
     # Farneback's Optical Flow
     # flow = cv2.calcOpticalFlowFarneback(old_gray, frame_gray, None, 0.5, 3, 15, 3, 5, 1.2, 0)
@@ -85,12 +86,12 @@ while(cap.isOpened()):
     # hsv[...,2] = cv2.normalize(mag, None, 0, 255, cv2.NORM_MINMAX)
     # bgr = cv2.cvtColor(hsv,cv2.COLOR_HSV2BGR)
 
-    i=i+1
+    i = i + 1
     prev_frame = frame
     old_gray = frame_gray
 
     # Press Q on keyboard to exit
-    if cv2.waitKey(25) & 0xFF == ord('q'):
+    if cv2.waitKey(25) & 0xFF == ord('q') or ret is False:
       break
 
   # Break the loop
