@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import argparse
 import time
 from pyramid_image import *
+from template_matcher import *
 
 # Create some random colors
 color = np.random.randint(0, 255, (100, 3))
@@ -94,6 +95,7 @@ while(cap.isOpened() and ret is True):
     i = i + 1
     prev_frame = frame
     old_gray = frame_gray
+    find_template_SIFT(prev_frame, layers_dict[0.5])#target_img)
 
     # Press Q on keyboard to exit.
     if cv2.waitKey(25) & 0xFF == ord('q') or ret is False:
