@@ -3,12 +3,32 @@ import matplotlib.pyplot as plt
 import cv2
 
 
-def find_template_SIFT(img, tplt):
+def filter_matches(kp1, kp2, matches, ratio = 0.75):
+    mkp1, mkp2 = [], []
+    for m in matches:
+        if len(m) == 2 and m[0].distance < m[1].distance * ratio:
+            m = m[0]
+            mkp1.append( kp1[m.queryIdx] )
+            mkp2.append( kp2[m.trainIdx] )
+    p1 = np.float32([kp.pt for kp in mkp1])
+    p2 = np.float32([kp.pt for kp in mkp2])
+    kp_pairs = zip(mkp1, mkp2)
+    return p1, p2, list(kp_pairs)
+
+
+def find_template_SIFT(img, tplt, show_res=true):
     """
     Tempalte finder based on SIFT method.
     """
-    img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    tplt_gray = cv2.cvtColor(tplt, cv2.COLOR_BGR2GRAY)
+    if len(img.shape) == 3:
+        img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    else:
+        img_gray = img
+
+    if len(img.shape) == 3:
+        tplt_gray = cv2.cvtColor(tplt, cv2.COLOR_BGR2GRAY)
+    else:
+        tplt_gray = tplt
     # img_gray = np.float32(img_gray)
     # tplt_gray = np.float32(tplt_gray)
 
@@ -33,8 +53,14 @@ def find_template_SIFT(img, tplt):
     img3 = np.zeros(img_gray.shape)
     img3 = cv2.drawMatchesKnn(img, kp1, tplt, kp2, good, img3, flags=2)
 
+    p1, p2, kp_pairs = filter_matches(kp1, kp2, matches)
+
     # plt.imshow(img3), plt.show()
-    cv2.imshow('SIFT', img3)
+    if show_res:
+        cv2.imshow('SIFT', img3)
+    # if len(p1) >= 4:
+    M, mask = cv2.findHomography(p1, p2, cv2.RANSAC)
+    return M
 
 
 def find_template_bf(img, tplt):
