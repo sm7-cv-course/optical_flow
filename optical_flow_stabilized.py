@@ -22,8 +22,10 @@ cap = cv2.VideoCapture(args["video"])
 
 #frame = stream_stab.read()
 ret, frame = cap.read()
-frame_gray = cv2.cvtColor(frame, cv2.COLOR_RGBA2GRAY)
-frame_prev = cv2.resize(frame_gray, None, fx=scale, fy=scale, interpolation=cv2.INTER_CUBIC)
+frame_gray1 = cv2.cvtColor(frame, cv2.COLOR_RGBA2GRAY)
+frame_gray1 = cv2.resize(frame_gray1, None, fx=scale, fy=scale, interpolation=cv2.INTER_CUBIC)
+frame_gray1 = cv2.GaussianBlur(frame_gray1, (5, 5), 0)
+frame_prev = frame_gray1
 
 # loop over
 while True:
@@ -38,7 +40,7 @@ while True:
     
     frame_stab_blur = cv2.GaussianBlur(frame_stab_small, (5, 5), 0)
 
-    M = find_template_SIFT(frame_stab_blur, frame_prev)
+    M = find_template_SIFT(frame_stab_blur, frame_gray1)
     #M = cv2.getAffineTransform(pts1,pts2)
 
     #M = cv2.findHomography(pts1, pts2)
@@ -53,11 +55,12 @@ while True:
     # Show output window
     #diff = np.zeros_like(frame_stab)
     #diff = 255 if (frame_prev - frame_stab) > 100 else 0
-    diff = frame_prev - frame_tr#frame_stab_blur
+    # diff = frame_prev - frame_tr#frame_stab_blur
     #img_gray = cv2.cvtColor(diff, cv2.COLOR_RGBA2GRAY)
     type = cv2.THRESH_BINARY
-    #ret, img_bw = cv2.threshold(img_gray, 250, 255, type)
-    cv2.imshow("Stabilized Frame", (frame_prev - frame_tr))
+    diff = np.fabs(np.float32(np.float32(frame_gray1) - np.float32(frame_tr)))
+    ret, img_bw = cv2.threshold(diff, 15, 255, type)
+    cv2.imshow("Stabilized Frame", img_bw)#(frame_gray1 - frame_tr))
     
     frame_prev = frame_stab_blur
     

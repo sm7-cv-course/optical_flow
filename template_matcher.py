@@ -16,7 +16,7 @@ def filter_matches(kp1, kp2, matches, ratio = 0.75):
     return p1, p2, list(kp_pairs)
 
 
-def find_template_SIFT(img, tplt, show_res=true):
+def find_template_SIFT(img, tplt, show_res=True):
     """
     Tempalte finder based on SIFT method.
     """
