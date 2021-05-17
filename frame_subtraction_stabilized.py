@@ -34,10 +34,10 @@ while True:
     frame_stab = stream_stab.read()
     #ret, frame_stab = cap.read()
     frame_gray = cv2.cvtColor(frame_stab, cv2.COLOR_RGBA2GRAY)
-    
+
     frame_stab_small = cv2.resize(frame_gray, None, fx=scale, fy=scale, interpolation=cv2.INTER_CUBIC)
     #dsize = (frame_stab.shape[1] / 2, frame_stab.shape[0] / 2))
-    
+
     frame_stab_blur = cv2.GaussianBlur(frame_stab_small, (5, 5), 0)
 
     M = find_template_SIFT(frame_stab_blur, frame_gray1)
@@ -61,14 +61,14 @@ while True:
     diff = np.fabs(np.float32(np.float32(frame_gray1) - np.float32(frame_tr)))
     ret, img_bw = cv2.threshold(diff, 15, 255, type)
     cv2.imshow("Stabilized Frame", img_bw)#(frame_gray1 - frame_tr))
-    
+
     frame_prev = frame_stab_blur
-    
+
     # check for 'q' key if pressed
     key = cv2.waitKey(1) & 0xFF
     if key == ord("q"):
         break
-        
+
 # close output window
 cv2.destroyAllWindows()
 
