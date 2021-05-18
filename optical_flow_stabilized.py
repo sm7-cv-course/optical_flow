@@ -62,7 +62,7 @@ while True:
     cv2.imshow('sobelx', sobel_x)
     sobel_mag = filters.sobel(frame_tr)
     cv2.imshow('sobel_mag', sobel_mag)
-    type = cv2.THRESH_BINARY
+    bin_type = cv2.THRESH_BINARY
     #diff = np.fabs(np.float32(np.float32(frame_gray1) - np.float32(frame_tr)) * sobel_y)
     #diff = np.fabs(np.float32(np.float32(frame_gray1) - np.float32(frame_tr)) * np.float32(sobel_y)) #* np.float32(np.float32(frame_prev) - np.float32(frame_tr))
     mask = ~(np.float32(np.fabs(np.float32(sobel_y)) - np.fabs(np.float32(sobel_y1))) < 0)
@@ -70,7 +70,7 @@ while True:
     cv2.imshow("grad_diff", np.fabs(np.float32((np.fabs(np.float32(sobel_y)) - np.fabs(np.float32(sobel_y1))))))
     #diff = np.fabs(np.float32(np.float32(frame_gray1) - np.float32(frame_tr)) * np.float32(grad_diff))
     diff = np.fabs(np.float32(np.float32(frame_gray1) - np.float32(frame_tr))) * np.fabs(np.float32((np.fabs(np.float32(sobel_y)) - np.fabs(np.float32(sobel_y1)))))
-    ret, img_bw = cv2.threshold(diff, 2, 255, type)
+    ret, img_bw = cv2.threshold(diff, 2, 255, bin_type)
     cv2.imshow("BW threshold", img_bw)#(frame_gray1 - frame_tr))
 
     frame_prev = frame_tr
