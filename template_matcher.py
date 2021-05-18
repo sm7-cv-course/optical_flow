@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
 import cv2
 
 
@@ -55,7 +54,6 @@ def find_template_SIFT(img, tplt, show_res=True):
 
     p1, p2, kp_pairs = filter_matches(kp1, kp2, matches)
 
-    # plt.imshow(img3), plt.show()
     if show_res:
         cv2.imshow('SIFT', img3)
     # if len(p1) >= 4:
