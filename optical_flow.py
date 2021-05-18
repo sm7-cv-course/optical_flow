@@ -23,19 +23,19 @@ def build_ovrs(img, n_ovrs, scale):
 # Construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
 ap.add_argument("-v", "--video", required=True, help="Path to the video.")
-ap.add_argument("-t", "--target", required=True, help="Path to target image.")
+#ap.add_argument("-t", "--target", required=True, help="Path to target image.")
 ap.add_argument("-c", "--split", required=False, help="Save each frame.")
 args = vars(ap.parse_args())
 
 # Open video file.
 cap = cv2.VideoCapture(args["video"])
 # Open target image.
-target_img = cv2.imread(args["target"])
+#target_img = cv2.imread(args["target"])
 
 # Create vector of pyramids
 # pyr_iamge = PyramidImage(target_img)
 # pyr_iamge.build_ovr(4, 0.5)
-layers_dict = build_ovrs(target_img, n_ovrs=4, scale=0.5)
+#layers_dict = build_ovrs(target_img, n_ovrs=4, scale=0.5)
 
 # Check if camera opened successfully.
 if (cap.isOpened() == False):
@@ -95,7 +95,7 @@ while(cap.isOpened() and ret is True):
     i = i + 1
     prev_frame = frame
     old_gray = frame_gray
-    find_template_SIFT(prev_frame, layers_dict[0.5])#target_img)
+    #find_template_SIFT(prev_frame, layers_dict[0.5])#target_img)
 
     # Press Q on keyboard to exit.
     if cv2.waitKey(25) & 0xFF == ord('q') or ret is False:
