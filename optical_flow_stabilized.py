@@ -2,6 +2,7 @@ import argparse
 import cv2 #as cv
 import imutils
 import numpy as np
+from skimage import filters
 from template_matcher import *
 
 scale = 0.5
@@ -25,6 +26,11 @@ frame_gray1 = cv2.GaussianBlur(frame_gray1, (5, 5), 0)
 if args["rotate"] is not None:
     # Rotation angle in degree
     frame_gray1 = imutils.rotate(frame_gray1, angle=-float(args["rotate"]))
+
+sobel_y1 = filters.sobel_h(frame_gray1)
+sobel_x1 = filters.sobel_v(frame_gray1)
+sobel_mag1 = filters.sobel(frame_gray1)
+
 frame_prev = frame_gray1
 
 # Loop over
@@ -50,7 +56,19 @@ while True:
         break
 
     # Show output window
+    sobel_y = filters.sobel_h(frame_tr)
+    cv2.imshow('sobely', sobel_y)
+    sobel_x = filters.sobel_v(frame_tr)
+    cv2.imshow('sobelx', sobel_x)
+    sobel_mag = filters.sobel(frame_tr)
+    cv2.imshow('sobel_mag', sobel_mag)
     type = cv2.THRESH_BINARY
+    #diff = np.fabs(np.float32(np.float32(frame_gray1) - np.float32(frame_tr)) * sobel_y)
+    #diff = np.fabs(np.float32(np.float32(frame_gray1) - np.float32(frame_tr)) * np.float32(sobel_y)) #* np.float32(np.float32(frame_prev) - np.float32(frame_tr))
+    mask = ~(np.float32(np.fabs(np.float32(sobel_y)) - np.fabs(np.float32(sobel_y1))) < 0)
+    grad_diff = np.where(mask, sobel_y, 0)
+    cv2.imshow("grad_diff", np.fabs(np.float32((np.fabs(np.float32(sobel_y)) - np.fabs(np.float32(sobel_y1))))))
+    #diff = np.fabs(np.float32(np.float32(frame_gray1) - np.float32(frame_tr)) * np.float32(grad_diff))
     diff = np.fabs(np.float32(np.float32(frame_gray1) - np.float32(frame_tr))) * np.fabs(np.float32((np.fabs(np.float32(sobel_y)) - np.fabs(np.float32(sobel_y1)))))
     ret, img_bw = cv2.threshold(diff, 2, 255, type)
     cv2.imshow("BW threshold", img_bw)#(frame_gray1 - frame_tr))
