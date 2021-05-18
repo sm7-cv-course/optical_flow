@@ -1,5 +1,6 @@
 import argparse
 import cv2 #as cv
+import imutils
 import numpy as np
 from template_matcher import *
 #https://github.com/abhiTronix/vidgear
@@ -12,6 +13,7 @@ scale = 0.5
 ap = argparse.ArgumentParser()
 ap.add_argument("-v", "--video", required=True, help="Path to the video.")
 ap.add_argument("-c", "--split", required=False, help="Save each frame.")
+ap.add_argument("-d", "--rotate", required=False, help="Rotate image.")
 args = vars(ap.parse_args())
 
 
@@ -25,6 +27,10 @@ ret, frame = cap.read()
 frame_gray1 = cv2.cvtColor(frame, cv2.COLOR_RGBA2GRAY)
 frame_gray1 = cv2.resize(frame_gray1, None, fx=scale, fy=scale, interpolation=cv2.INTER_CUBIC)
 frame_gray1 = cv2.GaussianBlur(frame_gray1, (5, 5), 0)
+
+if args["rotate"] is not None:
+    #rotation angle in degree
+    frame_gray1 = imutils.rotate(frame_gray1, angle=-float(args["rotate"]))
 frame_prev = frame_gray1
 
 # loop over
@@ -39,6 +45,10 @@ while True:
     #dsize = (frame_stab.shape[1] / 2, frame_stab.shape[0] / 2))
     
     frame_stab_blur = cv2.GaussianBlur(frame_stab_small, (5, 5), 0)
+
+    if args["rotate"] is not None:
+        #rotation angle in degree
+        frame_stab_blur = imutils.rotate(frame_stab_blur, angle=-float(args["rotate"]))
 
     M = find_template_SIFT(frame_stab_blur, frame_gray1)
     #M = cv2.getAffineTransform(pts1,pts2)
