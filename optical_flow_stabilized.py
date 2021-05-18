@@ -21,10 +21,12 @@ args = vars(ap.parse_args())
 
 stream_stab = VideoGear(source=args["video"], stabilize=True).start()
 cap = cv2.VideoCapture(args["video"])
+clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
 
 #frame = stream_stab.read()
 ret, frame = cap.read()
 frame_gray1 = cv2.cvtColor(frame, cv2.COLOR_RGBA2GRAY)
+frame_gray1 = clahe.apply(frame_gray1)
 frame_gray1 = cv2.resize(frame_gray1, None, fx=scale, fy=scale, interpolation=cv2.INTER_CUBIC)
 frame_gray1 = cv2.GaussianBlur(frame_gray1, (5, 5), 0)
 
@@ -40,7 +42,8 @@ while True:
     frame_stab = stream_stab.read()
     #ret, frame_stab = cap.read()
     frame_gray = cv2.cvtColor(frame_stab, cv2.COLOR_RGBA2GRAY)
-    
+    frame_gray = clahe.apply(frame_gray)
+
     frame_stab_small = cv2.resize(frame_gray, None, fx=scale, fy=scale, interpolation=cv2.INTER_CUBIC)
     #dsize = (frame_stab.shape[1] / 2, frame_stab.shape[0] / 2))
     
