@@ -51,9 +51,9 @@ while True:
 
     # Show output window
     type = cv2.THRESH_BINARY
-    diff = np.fabs(np.float32(np.float32(frame_gray1) - np.float32(frame_tr))) * np.fabs(np.float32((np.fabs(np.float32(sobel_y)) - np.fabs(np.float32(sobel_y1)))))
-    ret, img_bw = cv2.threshold(diff, 2, 255, type)
-    cv2.imshow("BW threshold", img_bw)#(frame_gray1 - frame_tr))
+    diff = np.fabs(np.float32(np.float32(frame_gray1) - np.float32(frame_tr)))
+    ret, img_bw = cv2.threshold(diff, 50, 255, type)
+    cv2.imshow("BW threshold", img_bw)
 
     frame_prev = frame_tr
 
@@ -64,4 +64,3 @@ while True:
 
 # Close output windows
 cv2.destroyAllWindows()
-
