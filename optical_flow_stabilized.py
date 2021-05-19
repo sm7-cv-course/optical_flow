@@ -6,6 +6,11 @@ from skimage import filters
 from template_matcher import *
 
 scale = 0.5
+bwThreshold = 50
+bwThresholdGrad = 0.5
+bwThresholdGradMinus = 0.01
+useGrad = True
+
 
 # Construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
@@ -19,7 +24,8 @@ clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
 
 ret, frame = cap.read()
 frame_gray1 = cv2.cvtColor(frame, cv2.COLOR_RGBA2GRAY)
-frame_gray1 = clahe.apply(frame_gray1)
+if useGrad:
+    frame_gray1 = clahe.apply(frame_gray1)
 frame_gray1 = cv2.resize(frame_gray1, None, fx=scale, fy=scale, interpolation=cv2.INTER_CUBIC)
 frame_gray1 = cv2.GaussianBlur(frame_gray1, (5, 5), 0)
 
@@ -37,7 +43,8 @@ frame_prev = frame_gray1
 while True:
     ret, frame = cap.read()
     frame_gray = cv2.cvtColor(frame, cv2.COLOR_RGBA2GRAY)
-    frame_gray = clahe.apply(frame_gray)
+    if useGrad:
+        frame_gray = clahe.apply(frame_gray)
 
     frame_small = cv2.resize(frame_gray, None, fx=scale, fy=scale, interpolation=cv2.INTER_CUBIC)
     frame_blur = cv2.GaussianBlur(frame_small, (5, 5), 0)
@@ -55,23 +62,31 @@ while True:
     if frame is None:
         break
 
-    # Show output window
-    sobel_y = filters.sobel_h(frame_tr)
-    cv2.imshow('sobely', sobel_y)
-    sobel_x = filters.sobel_v(frame_tr)
-    cv2.imshow('sobelx', sobel_x)
-    sobel_mag = filters.sobel(frame_tr)
-    cv2.imshow('sobel_mag', sobel_mag)
     bin_type = cv2.THRESH_BINARY
-    #diff = np.fabs(np.float32(np.float32(frame_gray1) - np.float32(frame_tr)) * sobel_y)
-    #diff = np.fabs(np.float32(np.float32(frame_gray1) - np.float32(frame_tr)) * np.float32(sobel_y)) #* np.float32(np.float32(frame_prev) - np.float32(frame_tr))
-    mask = ~(np.float32(np.fabs(np.float32(sobel_y)) - np.fabs(np.float32(sobel_y1))) < 0)
-    grad_diff = np.where(mask, sobel_y, 0)
-    cv2.imshow("grad_diff", np.fabs(np.float32((np.fabs(np.float32(sobel_y)) - np.fabs(np.float32(sobel_y1))))))
-    #diff = np.fabs(np.float32(np.float32(frame_gray1) - np.float32(frame_tr)) * np.float32(grad_diff))
-    diff = np.fabs(np.float32(np.float32(frame_gray1) - np.float32(frame_tr))) * np.fabs(np.float32((np.fabs(np.float32(sobel_y)) - np.fabs(np.float32(sobel_y1)))))
-    ret, img_bw = cv2.threshold(diff, 2, 255, bin_type)
-    cv2.imshow("BW threshold", img_bw)#(frame_gray1 - frame_tr))
+
+    if useGrad:
+        # Show output window
+        sobel_y = filters.sobel_h(frame_tr)
+        cv2.imshow('sobely', sobel_y)
+        sobel_x = filters.sobel_v(frame_tr)
+        cv2.imshow('sobelx', sobel_x)
+        sobel_mag = filters.sobel(frame_tr)
+        cv2.imshow('sobel_mag', sobel_mag)
+        #diff = np.fabs(np.float32(np.float32(frame_gray1) - np.float32(frame_tr)) * sobel_y)
+        #diff = np.fabs(np.float32(np.float32(frame_gray1) - np.float32(frame_tr)) * np.float32(sobel_y)) #* np.float32(np.float32(frame_prev) - np.float32(frame_tr))
+        mask = ~(np.float32(np.fabs(np.float32(sobel_y)) - np.fabs(np.float32(sobel_y1))) < -bwThresholdGradMinus)
+        grad_diff = np.where(mask, sobel_y, 0)
+        cv2.imshow("grad_diff", np.fabs(np.float32((np.fabs(np.float32(sobel_y)) - np.fabs(np.float32(sobel_y1))))))
+        diff = np.fabs(np.float32(np.float32(frame_gray1) - np.float32(frame_tr)) * np.float32(grad_diff))
+        diff2 = np.fabs(np.float32(np.float32(frame_gray1) - np.float32(frame_tr))) * np.fabs(np.float32((np.fabs(np.float32(sobel_y)) - np.fabs(np.float32(sobel_y1)))))
+        ret, img_bw = cv2.threshold(diff, 5, 255, bin_type)
+        ret, img_bw2 = cv2.threshold(diff2, 5, 255, bin_type)
+        cv2.imshow("BW threshold", img_bw)#(frame_gray1 - frame_tr))
+        cv2.imshow("BW threshold-2", img_bw2)
+    else:
+        diff = np.fabs(np.float32(np.float32(frame_gray1) - np.float32(frame_tr)))
+        ret, img_bw = cv2.threshold(diff, bwThreshold, 255, bin_type)
+        cv2.imshow("BW threshold", img_bw)
 
     frame_prev = frame_tr
 
