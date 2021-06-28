@@ -39,7 +39,8 @@ while True:
     frame_gray = clahe.apply(frame_gray)
 
     frame_small = cv2.resize(frame_gray, None, fx=scale, fy=scale, interpolation=cv2.INTER_CUBIC)
-    frame_blur = cv2.GaussianBlur(frame_small, (5, 5), 0)
+    # frame_blur = cv2.GaussianBlur(frame_small, (5, 5), 0)
+    frame_blur = frame_small
 
     if args["rotate"] is not None:
         # Rotation angle in degree
@@ -58,6 +59,9 @@ while True:
     thresh_type = cv2.THRESH_BINARY
     diff = np.fabs(np.float32(np.float32(frame_gray1) - np.float32(frame_tr)))
     ret, img_bw = cv2.threshold(diff, 50, 255, thresh_type)
+
+    frame_plus_mask = cv2.merge((frame_tr, frame_tr, np.uint8(img_bw))) #[frame_small, frame_small, img_bw]
+    cv2.imshow("frame_plus_mask", frame_plus_mask)
     cv2.imshow("BW threshold", img_bw)
 
     frame_prev = frame_tr
