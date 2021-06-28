@@ -11,12 +11,17 @@ ap = argparse.ArgumentParser()
 ap.add_argument("-v", "--video", required=True, help="Path to the video.")
 ap.add_argument("-c", "--split", required=False, help="Save each frame.")
 ap.add_argument("-d", "--rotate", required=False, help="Rotate image.")
+ap.add_argument("-s", "--source", required=False, help="Template image.")
 args = vars(ap.parse_args())
 
 cap = cv2.VideoCapture(args["video"])
 clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
 
-ret, frame = cap.read()
+if args["source"] is not None:
+    frame = cv2.imread(args["source"])
+else:
+    ret, frame = cap.read()
+
 frame_gray1 = cv2.cvtColor(frame, cv2.COLOR_RGBA2GRAY)
 frame_gray1 = clahe.apply(frame_gray1)
 frame_gray1 = cv2.resize(frame_gray1, None, fx=scale, fy=scale, interpolation=cv2.INTER_CUBIC)
@@ -38,7 +43,7 @@ while True:
 
     if args["rotate"] is not None:
         # Rotation angle in degree
-        frame_blur = imutils.rotate(frame_blur, angle=-float(args["rotate"]))
+        frame_blur = imutils.rotate(frame_blur, angle = -float(args["rotate"]))
 
     M = find_template_SIFT(frame_blur, frame_gray1)
 
@@ -50,9 +55,9 @@ while True:
         break
 
     # Show output window
-    type = cv2.THRESH_BINARY
+    thresh_type = cv2.THRESH_BINARY
     diff = np.fabs(np.float32(np.float32(frame_gray1) - np.float32(frame_tr)))
-    ret, img_bw = cv2.threshold(diff, 50, 255, type)
+    ret, img_bw = cv2.threshold(diff, 50, 255, thresh_type)
     cv2.imshow("BW threshold", img_bw)
 
     frame_prev = frame_tr
